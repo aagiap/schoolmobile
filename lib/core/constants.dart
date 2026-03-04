@@ -14,10 +14,9 @@ class AppColors {
 class AppConstants {
   const AppConstants._();
 
-  /// Android emulator: 10.0.2.2, iOS simulator/device: localhost/LAN IP.
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8080/api',
+    defaultValue: 'https://schoolapp-r3w2.onrender.com/api',
   );
 
   static const Duration networkTimeout = Duration(seconds: 20);
@@ -33,3 +32,5 @@ class StorageKeys {
   static const String fullName = 'fullName';
   static const String phone = 'phone';
 }
+// sdt: 0912345678
+// mk: hashed_123456

@@ -1,149 +1,74 @@
 class GradeItem {
-  const GradeItem({
-    required this.subject,
-    required this.teacherName,
-    required this.score15m,
-    required this.score45m,
-    required this.scoreFinal,
-    required this.scoreAvg,
-  });
-
   final String subject;
   final String teacherName;
   final String score15m;
   final String score45m;
-  final double? scoreFinal;
-  final double? scoreAvg;
+  final double scoreFinal;
+  final double scoreAvg;
 
-  factory GradeItem.fromJson(Map<String, dynamic> json) => GradeItem(
-    subject: (json['subject'] ?? '') as String,
-    teacherName: (json['teacherName'] ?? '') as String,
-    score15m: (json['score15m'] ?? '') as String,
-    score45m: (json['score45m'] ?? '') as String,
-    scoreFinal: (json['scoreFinal'] as num?)?.toDouble(),
-    scoreAvg: (json['scoreAvg'] as num?)?.toDouble(),
-  );
+  GradeItem.fromJson(Map<String, dynamic> json)
+      : subject = json['subject'] ?? '',
+        teacherName = json['teacherName'] ?? '',
+        score15m = json['score15m'] ?? '-',
+        score45m = json['score45m'] ?? '-',
+        scoreFinal = (json['scoreFinal'] != null) ? (json['scoreFinal'] as num).toDouble() : 0.0,
+        scoreAvg = (json['scoreAvg'] != null) ? (json['scoreAvg'] as num).toDouble() : 0.0;
 }
 
 class ScheduleItem {
-  const ScheduleItem({
-    required this.studyDate,
-    required this.period,
-    required this.subject,
-    required this.teacherName,
-    required this.room,
-    required this.timeRange,
-  });
-
-  final DateTime? studyDate;
-  final int? period;
+  final String studyDate;
+  final int period;
   final String subject;
   final String teacherName;
   final String room;
   final String timeRange;
 
-  factory ScheduleItem.fromJson(Map<String, dynamic> json) => ScheduleItem(
-    studyDate: json['studyDate'] != null
-        ? DateTime.tryParse(json['studyDate'] as String)
-        : null,
-    period: json['period'] as int?,
-    subject: (json['subject'] ?? '') as String,
-    teacherName: (json['teacherName'] ?? '') as String,
-    room: (json['room'] ?? '') as String,
-    timeRange: (json['timeRange'] ?? '') as String,
-  );
+  ScheduleItem.fromJson(Map<String, dynamic> json)
+      : studyDate = json['studyDate'] ?? '',
+        period = json['period'] ?? 0,
+        subject = json['subject'] ?? '',
+        teacherName = json['teacherName'] ?? '',
+        room = json['room'] ?? '',
+        timeRange = json['timeRange'] ?? '';
 }
 
 class ExamItem {
-  const ExamItem({
-    required this.subject,
-    required this.examDateTime,
-    required this.room,
-    required this.durationMinutes,
-  });
-
   final String subject;
-  final DateTime? examDateTime;
+  final String examDateTime;
   final String room;
-  final int? durationMinutes;
+  final int durationMinutes;
 
-  factory ExamItem.fromJson(Map<String, dynamic> json) => ExamItem(
-    subject: (json['subject'] ?? '') as String,
-    examDateTime: json['examDateTime'] != null
-        ? DateTime.tryParse(json['examDateTime'] as String)
-        : null,
-    room: (json['room'] ?? '') as String,
-    durationMinutes: json['durationMinutes'] as int?,
-  );
-}
-
-class AttendanceRecord {
-  const AttendanceRecord({
-    required this.attendanceDate,
-    required this.status,
-    required this.note,
-  });
-
-  final DateTime? attendanceDate;
-  final String status;
-  final String note;
-
-  factory AttendanceRecord.fromJson(Map<String, dynamic> json) => AttendanceRecord(
-    attendanceDate: json['attendanceDate'] != null
-        ? DateTime.tryParse(json['attendanceDate'] as String)
-        : null,
-    status: (json['status'] ?? '') as String,
-    note: (json['note'] ?? '') as String,
-  );
+  ExamItem.fromJson(Map<String, dynamic> json)
+      : subject = json['subject'] ?? '',
+        examDateTime = json['examDateTime'] ?? '',
+        room = json['room'] ?? '',
+        durationMinutes = json['durationMinutes'] ?? 0;
 }
 
 class AttendanceSummary {
-  const AttendanceSummary({
-    required this.totalDays,
-    required this.presentDays,
-    required this.absentDays,
-    required this.percentage,
-    required this.details,
-  });
-
   final int totalDays;
   final int presentDays;
   final int absentDays;
   final double percentage;
-  final List<AttendanceRecord> details;
+  final List<dynamic> details;
 
-  factory AttendanceSummary.fromJson(Map<String, dynamic> json) =>
-      AttendanceSummary(
-        totalDays: (json['totalDays'] ?? 0) as int,
-        presentDays: (json['presentDays'] ?? 0) as int,
-        absentDays: (json['absentDays'] ?? 0) as int,
-        percentage: (json['percentage'] as num?)?.toDouble() ?? 0,
-        details: ((json['details'] as List<dynamic>?) ?? [])
-            .map((e) => AttendanceRecord.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+  AttendanceSummary.fromJson(Map<String, dynamic> json)
+      : totalDays = json['totalDays'] ?? 0,
+        presentDays = json['presentDays'] ?? 0,
+        absentDays = json['absentDays'] ?? 0,
+        percentage = (json['percentage'] ?? 0).toDouble(),
+        details = json['details'] ?? [];
 }
 
 class NotificationItem {
-  const NotificationItem({
-    required this.type,
-    required this.title,
-    required this.content,
-    required this.createdAt,
-  });
-
   final String type;
   final String title;
   final String content;
-  final DateTime? createdAt;
+  final String createdAt;
 
-  factory NotificationItem.fromJson(Map<String, dynamic> json) =>
-      NotificationItem(
-        type: (json['type'] ?? '') as String,
-        title: (json['title'] ?? '') as String,
-        content: (json['content'] ?? '') as String,
-        createdAt: json['createdAt'] != null
-            ? DateTime.tryParse(json['createdAt'] as String)
-            : null,
-      );
+  NotificationItem.fromJson(Map<String, dynamic> json)
+      : type = json['type'] ?? '',
+        title = json['title'] ?? '',
+        content = json['content'] ?? '',
+        createdAt = json['createdAt'] ?? '';
 }

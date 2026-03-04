@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants.dart';
 import '../models/app_data.dart';
 import '../services/api_service.dart';
-import '../services/session_service.dart';
 
 class GradesScreen extends StatefulWidget {
   const GradesScreen({super.key});
@@ -13,56 +13,51 @@ class GradesScreen extends StatefulWidget {
 }
 
 class _GradesScreenState extends State<GradesScreen> {
-  final _apiService = ApiService();
-  final _sessionService = SessionService();
-
-  final List<String> _semesterOptions = const ['Học kỳ I -2025-2026', 'Học kỳ II -2025-2026'];
-  String _selectedSemester = 'Học kỳ II -2025-2026';
-
-  bool _loading = true;
-  String? _error;
-  List<GradeItem> _grades = const [];
+  final ApiService _apiService = ApiService();
+  List<GradeItem> _grades = [];
+  bool _isLoading = true;
+  String _selectedSemester = 'Học kì 1';
+  double _semesterGPA = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _loadGrades();
+    _fetchGrades();
   }
 
-  Future<void> _loadGrades() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
+  Future<void> _fetchGrades() async {
+    setState(() => _isLoading = true);
     try {
-      final studentId = await _sessionService.getStudentId();
-      if (studentId == null || studentId.isEmpty) {
-        throw Exception('Không tìm thấy phiên đăng nhập. Vui lòng đăng nhập lại.');
+      final prefs = await SharedPreferences.getInstance();
+      final studentId = prefs.getString(StorageKeys.studentId) ?? '';
+
+      // Gọi API lấy điểm từ ApiService của bạn
+      final grades = await _apiService.getGrades(
+        studentId: studentId,
+        semester: _selectedSemester,
+      );
+
+      // Tính điểm trung bình học kỳ (GPA)
+      double total = 0;
+      if (grades.isNotEmpty) {
+        for (var item in grades) {
+          total += item.scoreAvg;
+        }
+        _semesterGPA = total / grades.length;
       }
 
-      final semesterParam = _selectedSemester.startsWith('Học kỳ I') ? 'Học kỳ I' : 'Học kỳ II';
-      final data = await _apiService.getGrades(studentId: studentId, semester: semesterParam);
-
-      if (!mounted) return;
-      setState(() => _grades = data);
-    } catch (e) {
-      if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _grades = grades;
+        _isLoading = false;
       });
-    } finally {
+    } catch (e) {
+      setState(() => _isLoading = false);
       if (mounted) {
-        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: ${e.toString().replaceAll('Exception: ', '')}')),
+        );
       }
     }
-  }
-
-  double get _semesterAverage {
-    final values = _grades.map((e) => e.scoreAvg).whereType<double>().toList();
-    if (values.isEmpty) return 0;
-    final total = values.reduce((a, b) => a + b);
-    return total / values.length;
   }
 
   @override
@@ -70,231 +65,173 @@ class _GradesScreenState extends State<GradesScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Bảng điểm', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Bảng điểm',
+          style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textDark),
+            onPressed: () {},
+          ),
+        ],
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadGrades,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
           children: [
-            _buildSemesterDropdown(),
-            const SizedBox(height: 14),
-            _buildAverageCard(),
-            const SizedBox(height: 14),
-            if (_loading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (_error != null)
-              _buildErrorCard()
-            else if (_grades.isEmpty)
-              _buildEmptyCard()
-            else
-              ..._grades.asMap().entries.map((entry) {
-                final index = entry.key;
-                final grade = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _SubjectGradeCard(
-                    grade: grade,
-                    initiallyExpanded: index == 0,
+            const SizedBox(height: 10),
+            // --- DROP DOWN CHỌN HỌC KỲ ---
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedSemester,
+                  isExpanded: true,
+                  items: ['Học kì 1', 'Học kì 2']
+                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                      .toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => _selectedSemester = val);
+                      _fetchGrades();
+                    }
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // --- CARD ĐIỂM TRUNG BÌNH (GPA) ---
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 5))
+                ],
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _semesterGPA.toStringAsFixed(1),
+                    style: const TextStyle(fontSize: 72, fontWeight: FontWeight.w800, color: AppColors.primary),
                   ),
-                );
-              }),
+                  const Text(
+                    'ĐIỂM TRUNG BÌNH HỌC KỲ',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textLight, letterSpacing: 0.5),
+                  ),
+                  const SizedBox(height: 20),
+                  // Biểu đồ cột giả định (Mini Bar Chart)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _buildMiniBar(40),
+                      _buildMiniBar(55),
+                      _buildMiniBar(70),
+                      _buildMiniBar(90), // Cột cao nhất
+                      _buildMiniBar(65),
+                      _buildMiniBar(80),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // --- DANH SÁCH MÔN HỌC ---
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _grades.length,
+              itemBuilder: (context, index) {
+                return _buildSubjectTile(_grades[index]);
+              },
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSemesterDropdown() {
+  // Widget vẽ cột biểu đồ mini
+  Widget _buildMiniBar(double height) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      width: 12,
+      height: height / 2, // Scale lại cho vừa khung
+      margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedSemester,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded),
-          items: _semesterOptions
-              .map((s) => DropdownMenuItem<String>(value: s, child: Text(s)))
-              .toList(),
-          onChanged: (value) {
-            if (value == null) return;
-            setState(() => _selectedSemester = value);
-            _loadGrades();
-          },
-        ),
+        color: height > 80 ? AppColors.primary : AppColors.primary.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }
 
-  Widget _buildAverageCard() {
+  // Widget vẽ từng môn học (Có thể mở rộng)
+  Widget _buildSubjectTile(GradeItem item) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Text(
-            _semesterAverage.toStringAsFixed(1),
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontSize: 52,
-              fontWeight: FontWeight.w800,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'ĐIỂM TRUNG BÌNH HỌC KỲ',
-            style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(6, (i) {
-              final heights = [18.0, 24, 30, 42, 30, 36];
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                width: 6,
-                height: heights[i],
-                decoration: BoxDecoration(
-                  color: i >= 3 ? AppColors.primary : AppColors.primary.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: const Text(
-        'Chưa có dữ liệu bảng điểm cho học kỳ này.',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: AppColors.textLight),
-      ),
-    );
-  }
-
-  Widget _buildErrorCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          Text(_error ?? 'Đã có lỗi xảy ra', style: const TextStyle(color: AppColors.error)),
-          const SizedBox(height: 8),
-          ElevatedButton(onPressed: _loadGrades, child: const Text('Thử lại')),
-        ],
-      ),
-    );
-  }
-}
-
-class _SubjectGradeCard extends StatelessWidget {
-  const _SubjectGradeCard({required this.grade, required this.initiallyExpanded});
-
-  final GradeItem grade;
-  final bool initiallyExpanded;
-
-  @override
-  Widget build(BuildContext context) {
-    final avgText = (grade.scoreAvg ?? 0).toStringAsFixed(1);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          initiallyExpanded: initiallyExpanded,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           leading: Container(
-            width: 34,
-            height: 34,
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(10),
+              color: _getSubjectColor(item.subject).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(_iconForSubject(grade.subject), color: AppColors.primary, size: 20),
+            child: Icon(_getSubjectIcon(item.subject), color: _getSubjectColor(item.subject), size: 24),
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          title: Text(item.subject, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
+          subtitle: Text('Giáo viên: ${item.teacherName}', style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                grade.subject,
-                style: const TextStyle(
-                  fontSize: 28 / 2,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
-                ),
+                item.scoreAvg.toStringAsFixed(1),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
               ),
-              Text(
-                'Giáo viên: ${grade.teacherName}',
-                style: const TextStyle(color: AppColors.textLight, fontSize: 12),
-              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down, color: AppColors.textLight),
             ],
-          ),
-          trailing: Text(
-            avgText,
-            style: TextStyle(
-              color: initiallyExpanded ? AppColors.primary : AppColors.textDark,
-              fontWeight: FontWeight.w800,
-              fontSize: 28 / 2,
-            ),
           ),
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _ScoreColumn(title: '15 PHÚT', value: grade.score15m),
-                  _ScoreColumn(title: '1 TIẾT', value: grade.score45m),
-                  _ScoreColumn(
-                    title: 'CUỐI KỲ',
-                    value: grade.scoreFinal?.toStringAsFixed(1) ?? '-',
-                  ),
-                  _ScoreColumn(
-                    title: 'TB',
-                    value: grade.scoreAvg?.toStringAsFixed(1) ?? '-',
-                    isHighlight: true,
-                  ),
+                  _buildScoreDetail('15 PHÚT', item.score15m),
+                  _buildScoreDetail('1 TIẾT', item.score45m),
+                  _buildScoreDetail('CUỐI KỲ', item.scoreFinal.toStringAsFixed(1)),
+                  _buildScoreDetail('TB', item.scoreAvg.toStringAsFixed(1), isBold: true),
                 ],
               ),
             ),
@@ -304,46 +241,40 @@ class _SubjectGradeCard extends StatelessWidget {
     );
   }
 
-  IconData _iconForSubject(String subject) {
-    final s = subject.toLowerCase();
-    if (s.contains('toán')) return Icons.functions_rounded;
-    if (s.contains('anh')) return Icons.language_rounded;
-    if (s.contains('vật lý')) return Icons.science_outlined;
-    if (s.contains('hóa')) return Icons.biotech_outlined;
-    if (s.contains('văn')) return Icons.menu_book_outlined;
-    return Icons.school_outlined;
-  }
-}
-
-class _ScoreColumn extends StatelessWidget {
-  const _ScoreColumn({required this.title, required this.value, this.isHighlight = false});
-
-  final String title;
-  final String value;
-  final bool isHighlight;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildScoreDetail(String label, String value, {bool isBold = false}) {
     return Column(
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: isHighlight ? AppColors.primary : AppColors.textLight,
-          ),
-        ),
-        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF94A3B8))),
+        const SizedBox(height: 6),
         Text(
           value,
           style: TextStyle(
-            fontSize: 24 / 2,
-            fontWeight: FontWeight.w800,
-            color: isHighlight ? AppColors.primary : AppColors.textDark,
+            fontSize: 14,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            color: isBold ? AppColors.primary : AppColors.textDark,
           ),
         ),
       ],
     );
+  }
+
+  // Logic lấy Icon theo tên môn học
+  IconData _getSubjectIcon(String name) {
+    if (name.contains('Toán')) return Icons.functions;
+    if (name.contains('Ngữ văn')) return Icons.menu_book;
+    if (name.contains('Tiếng Anh')) return Icons.language;
+    if (name.contains('Vật lý')) return Icons.science_outlined;
+    if (name.contains('Hóa học')) return Icons.biotech_outlined;
+    return Icons.subject;
+  }
+
+  // Logic lấy Màu theo tên môn học
+  Color _getSubjectColor(String name) {
+    if (name.contains('Toán')) return Colors.orange;
+    if (name.contains('Ngữ văn')) return Colors.deepOrangeAccent;
+    if (name.contains('Tiếng Anh')) return Colors.blue;
+    if (name.contains('Vật lý')) return Colors.purple;
+    if (name.contains('Hóa học')) return Colors.teal;
+    return AppColors.primary;
   }
 }
