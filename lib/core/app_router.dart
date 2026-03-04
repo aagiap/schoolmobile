@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../screens/grades_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/reset_password_screen.dart';
@@ -10,6 +11,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String resetPassword = '/reset-password';
   static const String home = '/home';
+  static const String grades = '/grades';
 }
 
 class AppRouter {
@@ -23,6 +25,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const ResetPasswordScreen());
       case AppRoutes.home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
+      case AppRoutes.grades:
+        return MaterialPageRoute(builder: (_) => const GradesScreen());
       default:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
     }
