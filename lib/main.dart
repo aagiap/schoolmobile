@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'screens/login_screen.dart';
+
+import 'core/app_router.dart';
+import 'core/app_theme.dart';
+import 'core/constants.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const SchoolMobileApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SchoolMobileApp extends StatelessWidget {
+  const SchoolMobileApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sổ Liên Lạc',
+      title: AppConstants.appTitle,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFF57C00)),
-        textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
-        useMaterial3: true,
-      ),
-      home: const LoginScreen(),
+      theme: AppTheme.light(),
+      initialRoute: AppRoutes.login,
+      onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
 }
