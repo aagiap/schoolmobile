@@ -85,6 +85,10 @@ class _HomeActionCard extends StatelessWidget {
               ),
             ),
             const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textLight),
+              'Khung chung đã sẵn sàng: đăng nhập, đổi mật khẩu, gọi API và lưu phiên đăng nhập. '
+              'Ở bước tiếp theo chúng ta sẽ dựng các màn hình đúng thiết kế bạn gửi.',
+              style: TextStyle(color: AppColors.textLight),
+            ),
           ],
         ),
       ),
