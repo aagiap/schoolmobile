@@ -13,13 +13,14 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Khởi tạo các biến để hứng dữ liệu từ Session
+  // 1. Quản lý index cho thanh điều hướng (Cá nhân là index 2)
+  int _selectedIndex = 2;
+
   String _fullName = '';
   String _studentId = '';
   String _className = '';
   String _phone = '';
 
-  // Sử dụng SessionService đã có trong project của bạn
   final SessionService _sessionService = SessionService();
 
   @override
@@ -28,7 +29,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadProfileData();
   }
 
-  // Hàm lấy dữ liệu thực tế từ bộ nhớ máy (SharedPreferences) thông qua StorageKeys
   Future<void> _loadProfileData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -39,9 +39,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  // Logic Đăng xuất: Xóa session và quay về màn hình Login
+  // 2. Logic xử lý khi chạm vào thanh điều hướng
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return; // Nếu nhấn vào chính trang hiện tại thì không làm gì
+
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 0) {
+      // Về Trang chủ: Sử dụng pushReplacementNamed để tránh chồng lấp các màn hình chính
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } else if (index == 1) {
+      // Sang Thông báo
+      Navigator.pushReplacementNamed(context, AppRoutes.notifications);
+    }
+  }
+
   Future<void> _handleLogout() async {
-    await _sessionService.clear(); // Xóa sạch studentId, fullName, phone...
+    await _sessionService.clear();
     if (mounted) {
       Navigator.pushNamedAndRemoveUntil(
         context,
@@ -59,6 +75,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        // Bỏ nút back nếu đây là 1 tab chính trong BottomNav
+        automaticallyImplyLeading: false,
         title: const Text(
           'Hồ sơ cá nhân',
           style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold, fontSize: 18),
@@ -68,7 +86,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
           children: [
-            // Avatar động dựa theo tên học sinh
             Stack(
               alignment: Alignment.bottomRight,
               children: [
@@ -99,7 +116,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text('Lớp $_className', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primary)),
             const SizedBox(height: 24),
 
-            // Card Thông tin hiển thị dữ liệu từ Session
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -113,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const Text('THÔNG TIN HỌC SINH', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textLight)),
                   const SizedBox(height: 16),
                   _buildInfoRow(icon: Icons.badge_outlined, title: 'Mã số học sinh', value: _studentId),
-                  _buildInfoRow(icon: Icons.calendar_today_outlined, title: 'Ngày sinh', value: '15/08/2008'), // Dữ liệu cố định từ DB
+                  _buildInfoRow(icon: Icons.calendar_today_outlined, title: 'Ngày sinh', value: '15/08/2008'),
                   _buildInfoRow(icon: Icons.phone_outlined, title: 'Số điện thoại', value: _phone),
                   _buildInfoRow(icon: Icons.school_outlined, title: 'Niên khóa', value: '2025 - 2026', isLast: true),
                 ],
@@ -121,7 +137,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Nút Đổi mật khẩu
             OutlinedButton.icon(
               onPressed: () => Navigator.pushNamed(context, AppRoutes.resetPassword),
               icon: const Icon(Icons.lock_reset, color: AppColors.primary),
@@ -129,7 +144,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Nút Đăng xuất thực tế
             TextButton.icon(
               onPressed: _handleLogout,
               icon: const Icon(Icons.logout, color: AppColors.error),
@@ -137,6 +151,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
+      ),
+
+      // --- BOTTOM NAVIGATION BAR ---
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textLight,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home_filled),
+            label: 'Trang chủ',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none_outlined),
+            label: 'Thông báo',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Cá nhân',
+          ),
+        ],
       ),
     );
   }

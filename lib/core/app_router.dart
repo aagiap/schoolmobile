@@ -6,10 +6,10 @@ import '../screens/login_screen.dart';
 import '../screens/reset_password_screen.dart';
 import '../screens/profile_screen.dart';
 // Lưu ý: Bạn cần tạo các file trống này trong thư mục screens để không bị lỗi import
-// import '../screens/schedule_screen.dart';
-// import '../screens/exam_screen.dart';
-// import '../screens/notifications_screen.dart';
-// import '../screens/attendance_screen.dart';
+ import '../screens/schedule_screen.dart';
+ import '../screens/exam_screen.dart';
+ import '../screens/notifications_screen.dart';
+ import '../screens/attendance_screen.dart';
 
 class AppRoutes {
   const AppRoutes._();
@@ -43,17 +43,13 @@ class AppRouter {
 
     // Các route bổ sung dựa trên menu ở Home Screen
       case AppRoutes.schedule:
-      // return MaterialPageRoute(builder: (_) => const ScheduleScreen());
-        return _errorRoute(); // Tạm thời để error cho đến khi bạn tạo file
+       return MaterialPageRoute(builder: (_) => const ScheduleScreen());
       case AppRoutes.exams:
-      // return MaterialPageRoute(builder: (_) => const ExamScreen());
-        return _errorRoute();
+       return MaterialPageRoute(builder: (_) => const ExamScreen());
       case AppRoutes.notifications:
-      // return MaterialPageRoute(builder: (_) => const NotificationsScreen());
-        return _errorRoute();
+       return MaterialPageRoute(builder: (_) => const NotificationsScreen());
       case AppRoutes.attendance:
-      // return MaterialPageRoute(builder: (_) => const AttendanceScreen());
-        return _errorRoute();
+       return MaterialPageRoute(builder: (_) => const AttendanceScreen());
 
       default:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
