@@ -107,5 +107,3 @@ https://schoolapp-r3w2.onrender.com/api
 - Khi chạy trên thiết bị thật, đảm bảo backend cho phép truy cập từ mạng thiết bị.
 
 ---
-
-Nếu bạn muốn, có thể mở rộng thêm phần README cho quy trình build phát hành (`apk`, `aab`, iOS archive`) và checklist kiểm thử trước release.
