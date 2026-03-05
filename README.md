@@ -1,73 +1,111 @@
-# schoolmobile
+# SchoolMobile - Sổ liên lạc điện tử THPT
 
-Ứng dụng mobile **Sổ liên lạc điện tử cho học sinh THPT** (Flutter).
+Ứng dụng Flutter hỗ trợ học sinh theo dõi thông tin học tập hằng ngày: điểm số, thời khóa biểu, lịch thi, điểm danh, thông báo và hồ sơ cá nhân.
 
-## Những gì đã được chuẩn bị sẵn
+## 1) Tổng quan
 
-- Khung theme dùng chung (màu, input, button).
-- Router tập trung cho các màn hình cơ bản.
-- Service gọi API theo đúng web service bạn mô tả:
-  - `POST /api/auth/login`
-  - `POST /api/auth/reset-password`
-  - `GET /api/app/grades/{studentId}?semester=...`
-  - `GET /api/app/schedules?className=...&week=...`
-  - `GET /api/app/exams/{studentId}?semester=...`
-  - `GET /api/app/attendances/{studentId}`
-  - `GET /api/app/notifications/{studentId}`
-- Model dữ liệu cho toàn bộ module: học sinh, bảng điểm, thời khóa biểu, lịch thi, điểm danh, thông báo.
-- Session service để lưu thông tin đăng nhập cục bộ (`SharedPreferences`).
-- Màn hình nền tảng:
-  - Đăng nhập (đã gọi API thật)
-  - Đặt lại mật khẩu (đã gọi API thật)
-  - Trang chủ placeholder để nối tiếp các màn hình chi tiết.
+- Nền tảng: **Flutter (Material 3)**.
+- Kiến trúc gọn nhẹ theo module: `core`, `models`, `services`, `screens`.
+- Kết nối backend qua REST API, có xử lý timeout và thông báo lỗi rõ ràng.
+- Lưu phiên đăng nhập cục bộ bằng `SharedPreferences`.
 
-## Cấu trúc thư mục chính
+## 2) Tính năng đã hoàn thiện
+
+### Xác thực
+- Đăng nhập bằng số điện thoại + mật khẩu.
+- Đặt lại mật khẩu.
+- Điều hướng sau đăng nhập tới trang chủ.
+
+### Trang chủ
+- Hiển thị thông tin học sinh (họ tên, lớp).
+- Menu truy cập nhanh tới các phân hệ chính.
+- Bottom navigation cho Trang chủ / Thông báo / Hồ sơ.
+
+### Các phân hệ học vụ
+- **Kết quả học tập**: xem điểm theo học kỳ.
+- **Thời khóa biểu**: xem theo tuần, lọc theo ngày.
+- **Lịch thi**: xem lịch kiểm tra/thi theo học kỳ.
+- **Điểm danh**: xem tổng quan và chi tiết theo tháng.
+- **Thông báo**: nhận thông báo từ nhà trường.
+- **Hồ sơ cá nhân**: xem thông tin học sinh, đăng xuất.
+
+## 3) Cấu trúc dự án
 
 ```text
 lib/
   core/
-    app_router.dart
-    app_theme.dart
-    constants.dart
+    app_router.dart        # Khai báo route và điều hướng
+    app_theme.dart         # Theme và style dùng chung
+    constants.dart         # Màu sắc, hằng số app, API base URL
   models/
-    student.dart
-    app_data.dart
+    student.dart           # Model học sinh
+    app_data.dart          # Model điểm, lịch học, lịch thi, điểm danh, thông báo
   services/
-    api_service.dart
-    session_service.dart
+    api_service.dart       # Tầng gọi REST API
+    session_service.dart   # Lưu/đọc phiên đăng nhập cục bộ
   screens/
     login_screen.dart
     reset_password_screen.dart
     home_screen.dart
+    grades_screen.dart
+    schedule_screen.dart
+    exam_screen.dart
+    attendance_screen.dart
+    notifications_screen.dart
+    profile_screen.dart
   main.dart
 ```
 
-## Cấu hình API base URL
+## 4) Cấu hình môi trường
 
-Mặc định đang dùng:
+### Yêu cầu
+- Flutter SDK tương thích với `Dart SDK ^3.10.4`.
+- Android Studio/Xcode (tuỳ nền tảng chạy).
 
-- Android emulator: `http://10.0.2.2:8080/api`
-
-Có thể override khi chạy app:
-
-```bash
-flutter run --dart-define=API_BASE_URL=http://<your-ip>:8080/api
-```
-
-## Lộ trình đề xuất hoàn thiện theo từng bước
-
-1. Dựng lại UI chính xác theo ảnh cho từng màn hình (ưu tiên login → home → các tab).  
-2. Tạo `BottomNavigation` và state quản lý tab.  
-3. Kết nối từng màn hình với `ApiService` (đã có sẵn hàm gọi).  
-4. Bổ sung xử lý loading / empty / error cho từng module.  
-5. Thêm format ngày giờ, semester/week picker theo dữ liệu thực tế.  
-6. Viết widget test + integration test cho flow đăng nhập và gọi API.
-
-## Chạy dự án
+### Cài đặt nhanh
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-> Nếu chạy trên máy thật/emulator khác, nhớ chỉnh `API_BASE_URL` cho đúng IP backend Spring Boot.
+## 5) Cấu hình API
+
+Ứng dụng đọc base URL qua `--dart-define`:
+
+```bash
+flutter run --dart-define=API_BASE_URL=https://your-domain/api
+```
+
+Nếu không truyền biến môi trường, app dùng mặc định:
+
+```text
+https://schoolapp-r3w2.onrender.com/api
+```
+
+## 6) Danh sách API tích hợp
+
+- `POST /auth/login`
+- `POST /auth/reset-password`
+- `GET /app/grades/{studentId}?semester=...`
+- `GET /app/schedules?className=...&week=...`
+- `GET /app/exams/{studentId}?semester=...`
+- `GET /app/attendances/{studentId}`
+- `GET /app/notifications/{studentId}`
+
+## 7) Thư viện chính
+
+- `http`: gọi API.
+- `shared_preferences`: lưu phiên đăng nhập.
+- `intl`: format ngày/tháng.
+- `google_fonts`: đồng bộ typography.
+
+## 8) Ghi chú vận hành
+
+- Ứng dụng khởi động tại màn hình đăng nhập.
+- Toàn bộ dữ liệu màn hình học vụ lấy từ backend theo thông tin học sinh đã đăng nhập.
+- Khi chạy trên thiết bị thật, đảm bảo backend cho phép truy cập từ mạng thiết bị.
+
+---
+
+Nếu bạn muốn, có thể mở rộng thêm phần README cho quy trình build phát hành (`apk`, `aab`, iOS archive`) và checklist kiểm thử trước release.
