@@ -15,14 +15,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController();
-  final _otpController = TextEditingController(); // Thêm controller cho OTP
+  final _otpController = TextEditingController();
 
   final _apiService = ApiService();
   final _sessionService = SessionService();
 
   bool _isLoading = false;
-  bool _otpSent = false; // Biến trạng thái: đã gửi mã OTP chưa?
-  String _verificationId = ''; // Lưu ID xác thực của Firebase
+  bool _otpSent = false;
+  String _verificationId = '';
 
   @override
   void dispose() {
@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // HÀM 1: Gửi yêu cầu lấy mã OTP
+
   Future<void> _sendOTP() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty || phone.length < 9) {
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Đổi số điện thoại VN sang chuẩn quốc tế để Firebase hiểu (+84)
+
     String internationalPhone = phone;
     if (phone.startsWith('0')) {
       internationalPhone = '+84${phone.substring(1)}';
@@ -50,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: internationalPhone,
       verificationCompleted: (PhoneAuthCredential credential) async {
-        // Android tự động bắt SMS (Auto-retrieval)
         await _signInAndSendToServer(credential);
       },
       verificationFailed: (FirebaseAuthException e) {
@@ -71,7 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // HÀM 2: Người dùng tự nhập OTP vào
   Future<void> _verifyOTP() async {
     final otp = _otpController.text.trim();
     if (otp.length != 6) return;
@@ -89,17 +87,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // HÀM 3: Đăng nhập Firebase xong, lấy Token đưa cho Spring Boot
   Future<void> _signInAndSendToServer(PhoneAuthCredential credential) async {
     try {
-      // Đăng nhập vào Firebase
       final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // Lấy Firebase ID Token
       final String? idToken = await userCredential.user?.getIdToken();
       if (idToken == null) throw Exception("Không lấy được Token từ Google");
 
-      // Gửi Token lên Spring Boot của bạn
       final authResponse = await _apiService.loginWithFirebase(idToken: idToken);
       await _sessionService.saveAuthSession(authResponse);
 

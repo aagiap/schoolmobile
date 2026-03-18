@@ -37,7 +37,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Future<void> _loadScheduleData() async {
     setState(() => _isLoading = true);
     try {
-      // 1. Lấy tự động lớp học (className) từ SharedPreferences khi user login
+      // Lấy tự động lớp học (className) từ SharedPreferences khi user login
       final prefs = await SharedPreferences.getInstance();
       _className = prefs.getString(StorageKeys.className) ?? '';
 
@@ -45,13 +45,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         throw Exception("Không tìm thấy thông tin lớp học. Vui lòng đăng nhập lại.");
       }
 
-      // 2. Gọi API Service đã định nghĩa của bạn
       final schedules = await _apiService.getSchedules(
         className: _className,
         week: _selectedWeek,
       );
 
-      // 3. Gom nhóm các ngày có lịch học trong tuần để vẽ thanh trượt (T2, T3...)
+      // Gom nhóm các ngày có lịch học trong tuần để vẽ thanh trượt (T2, T3...)
       final Set<String> dateStrings = schedules.map((s) => s.studyDate).toSet();
       _uniqueDates = dateStrings.map((ds) => DateTime.parse(ds)).toList();
       _uniqueDates.sort(); // Sắp xếp tăng dần theo thời gian

@@ -18,7 +18,6 @@ class Student {
   final DateTime? dob;
 
   factory Student.fromJson(Map<String, dynamic> json) {
-    // Xử lý lấy phone từ bản thân object hoặc từ object user lồng bên trong
     String phoneVal = '';
     if (json['phone'] != null) {
       phoneVal = json['phone'].toString();
@@ -38,7 +37,6 @@ class Student {
   }
 }
 
-// Thêm Class này để hứng dữ liệu đăng nhập có Token
 class AuthResponse {
   final String token;
   final String role;

@@ -101,7 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                // Nhấn vào Avatar cũng có thể mở Profile
                 GestureDetector(
                   onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
                   child: Container(

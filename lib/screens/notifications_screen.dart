@@ -16,7 +16,6 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final ApiService _apiService = ApiService();
 
-  // 1. Quản lý index cho thanh điều hướng (Thông báo là index 1)
   int _selectedIndex = 1;
 
   bool _isLoading = true;
@@ -108,7 +107,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        // Ẩn nút back vì đây là tab chính
         automaticallyImplyLeading: false,
         title: const Text(
           'Thông báo',

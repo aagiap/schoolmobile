@@ -38,13 +38,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _loading = true);
     try {
-      // 1. Nhận AuthResponse (Gồm Token, Role và Profile)
+      // Nhận AuthResponse (Gồm Token, Role và Profile)
       final AuthResponse authResponse = await _apiService.login(
         phone: _phoneController.text.trim(),
         password: _passwordController.text,
       );
 
-      // 2. Lưu toàn bộ phiên xuống bộ nhớ
+      // Lưu toàn bộ phiên xuống bộ nhớ
       await _sessionService.saveAuthSession(authResponse);
 
       if (!mounted) return;

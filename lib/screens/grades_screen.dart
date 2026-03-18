@@ -31,7 +31,6 @@ class _GradesScreenState extends State<GradesScreen> {
       final prefs = await SharedPreferences.getInstance();
       final studentId = prefs.getString(StorageKeys.studentId) ?? '';
 
-      // Gọi API lấy điểm từ ApiService của bạn
       final grades = await _apiService.getGrades(
         studentId: studentId,
         semester: _selectedSemester,
@@ -137,7 +136,6 @@ class _GradesScreenState extends State<GradesScreen> {
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textLight, letterSpacing: 0.5),
                   ),
                   const SizedBox(height: 20),
-                  // Biểu đồ cột giả định (Mini Bar Chart)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -145,7 +143,7 @@ class _GradesScreenState extends State<GradesScreen> {
                       _buildMiniBar(40),
                       _buildMiniBar(55),
                       _buildMiniBar(70),
-                      _buildMiniBar(90), // Cột cao nhất
+                      _buildMiniBar(90),
                       _buildMiniBar(65),
                       _buildMiniBar(80),
                     ],
@@ -184,7 +182,7 @@ class _GradesScreenState extends State<GradesScreen> {
     );
   }
 
-  // Widget vẽ từng môn học (Có thể mở rộng)
+  // Widget vẽ từng môn học
   Widget _buildSubjectTile(GradeItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

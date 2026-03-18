@@ -13,7 +13,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // 1. Quản lý index cho thanh điều hướng (Cá nhân là index 2)
+  // Quản lý index cho thanh điều hướng (Cá nhân là index 2)
   int _selectedIndex = 2;
 
   String _fullName = '';
@@ -39,9 +39,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  // 2. Logic xử lý khi chạm vào thanh điều hướng
+  //Logic xử lý khi chạm vào thanh điều hướng
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return; // Nếu nhấn vào chính trang hiện tại thì không làm gì
+    if (index == _selectedIndex) return;
 
     setState(() {
       _selectedIndex = index;

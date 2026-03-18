@@ -5,7 +5,6 @@ import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/reset_password_screen.dart';
 import '../screens/profile_screen.dart';
-// Lưu ý: Bạn cần tạo các file trống này trong thư mục screens để không bị lỗi import
  import '../screens/schedule_screen.dart';
  import '../screens/exam_screen.dart';
  import '../screens/notifications_screen.dart';

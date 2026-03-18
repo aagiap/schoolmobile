@@ -24,12 +24,11 @@ class ApiService {
     return headers;
   }
 
-  // Trả về AuthResponse thay vì Student thuần túy
   Future<AuthResponse> login({required String phone, required String password}) async {
     final json = await _post(
       '/auth/login',
       body: {'phone': phone, 'password': password},
-      requireAuth: false, // Login thì chưa có token
+      requireAuth: false,
     );
     return AuthResponse.fromJson(json);
   }
@@ -84,7 +83,6 @@ class ApiService {
     return _parseResponse(response);
   }
 
-  // Cập nhật phương thức POST
   Future<Map<String, dynamic>> _post(
       String endpoint, {
         required Map<String, dynamic> body,
@@ -120,7 +118,6 @@ class ApiService {
         message = body;
       }
     }
-    // Bắt lỗi Unauthorized
     if (response.statusCode == 401 || response.statusCode == 403) {
       message = 'Phiên đăng nhập hết hạn hoặc bạn không có quyền truy cập.';
     }

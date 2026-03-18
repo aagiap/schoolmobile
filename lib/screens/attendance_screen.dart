@@ -81,7 +81,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }).toList();
   }
 
-  // Chuyển "05/2026" thành "Tháng 5, 2026" cho UI
   String _formatMonthDisplay(String mmYYYY) {
     final parts = mmYYYY.split('/');
     if (parts.length == 2) {

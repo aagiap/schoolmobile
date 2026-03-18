@@ -16,7 +16,7 @@ class AppConstants {
 
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    // Nếu chạy máy ảo Android (Emulator) test local, hãy đổi thành: 'http://10.0.2.2:8080/api'
+    // 'http://10.0.2.2:8080/api'
     //defaultValue: 'https://schoolapp-r3w2.onrender.com/api',
     defaultValue: 'http://10.0.2.2:8080/api',
   );
@@ -29,8 +29,8 @@ class AppConstants {
 class StorageKeys {
   const StorageKeys._();
 
-  static const String token = 'token'; // Khóa lưu JWT
-  static const String role = 'role';   // Khóa lưu Quyền (ROLE_STUDENT, ROLE_PARENT...)
+  static const String token = 'token'; // JWT
+  static const String role = 'role';   // (ROLE_STUDENT, ROLE_PARENT...)
   static const String studentId = 'studentId';
   static const String className = 'className';
   static const String fullName = 'fullName';

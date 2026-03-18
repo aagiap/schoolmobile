@@ -19,12 +19,11 @@ class _ExamScreenState extends State<ExamScreen> {
   bool _isLoading = true;
   List<ExamItem> _exams = [];
 
-  // Map cấu hình Học kỳ để hiển thị UI đẹp hơn (Khớp DB SQL: 'Học kì 1', 'Học kì 2')
   final Map<String, String> _semesters = {
     'Học kì 1': 'Học kỳ I - 2025-2026',
     'Học kì 2': 'Học kỳ II - 2025-2026',
   };
-  String _selectedApiSemester = 'Học kì 2'; // Mặc định hiển thị HK2
+  String _selectedApiSemester = 'Học kì 2';
 
   @override
   void initState() {
@@ -35,7 +34,6 @@ class _ExamScreenState extends State<ExamScreen> {
   Future<void> _fetchExams() async {
     setState(() => _isLoading = true);
     try {
-      // 1. Lấy ID học sinh từ bộ nhớ
       final prefs = await SharedPreferences.getInstance();
       final studentId = prefs.getString(StorageKeys.studentId) ?? '';
 
@@ -43,7 +41,6 @@ class _ExamScreenState extends State<ExamScreen> {
         throw Exception('Không tìm thấy thông tin học sinh.');
       }
 
-      // 2. Gọi API lấy lịch thi
       final data = await _apiService.getExams(
         studentId: studentId,
         semester: _selectedApiSemester,
@@ -144,19 +141,15 @@ class _ExamScreenState extends State<ExamScreen> {
 
   // Khối Card hiển thị lịch thi của 1 môn
   Widget _buildExamCard(ExamItem exam) {
-    // 1. Phân tích chuỗi thời gian (Ví dụ: "2026-03-20 07:30:00" -> DateTime)
     DateTime examDate;
     try {
-      // Đảm bảo parse được cả định dạng có khoảng trắng của SQL
       examDate = DateTime.parse(exam.examDateTime.replaceFirst(' ', 'T'));
     } catch (e) {
-      examDate = DateTime.now(); // Fallback nếu dữ liệu lỗi
+      examDate = DateTime.now();
     }
 
-    // 2. Format dữ liệu theo đúng UI
     final monthStr = 'THÁNG ${examDate.month}';
 
-    // Đổi thứ sang tiếng Việt
     const weekdays = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
     final weekdayStr = weekdays[examDate.weekday - 1];
     final dateStr = DateFormat('dd/MM/yyyy').format(examDate);

@@ -5,7 +5,6 @@ import '../models/student.dart';
 
 class SessionService {
 
-  // Sửa lại hàm này để lưu toàn bộ Phiên đăng nhập
   Future<void> saveAuthSession(AuthResponse auth) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(StorageKeys.token, auth.token);
