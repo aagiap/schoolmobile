@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'core/app_router.dart';
 import 'core/app_theme.dart';
 import 'core/constants.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async { // Thêm chữ async ở đây
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const SchoolMobileApp());
 }
 

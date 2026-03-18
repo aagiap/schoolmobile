@@ -38,19 +38,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _loading = true);
     try {
-      final Student student = await _apiService.login(
+      // 1. Nhận AuthResponse (Gồm Token, Role và Profile)
+      final AuthResponse authResponse = await _apiService.login(
         phone: _phoneController.text.trim(),
         password: _passwordController.text,
       );
-      await _sessionService.saveStudent(student);
+
+      // 2. Lưu toàn bộ phiên xuống bộ nhớ
+      await _sessionService.saveAuthSession(authResponse);
 
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: AppColors.error),
+      );
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -100,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                   validator: (value) =>
-                      (value == null || value.trim().isEmpty) ? 'Vui lòng nhập số điện thoại' : null,
+                  (value == null || value.trim().isEmpty) ? 'Vui lòng nhập số điện thoại' : null,
                 ),
                 const SizedBox(height: 16),
                 const Text('Mật khẩu', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -121,17 +124,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   validator: (value) =>
-                      (value == null || value.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
+                  (value == null || value.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _loading ? null : _handleLogin,
                   child: _loading
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
                       : const Text('Đăng nhập'),
                 ),
                 const SizedBox(height: 8),
